@@ -8,7 +8,7 @@ def main():
     option = input()
     match option:
         case "1":
-            print("1!")
+            print(check_password())
         case "2":
             print(generate_password())
         case "3":
@@ -20,16 +20,57 @@ def main():
 
 
 # Function that checks for the basic password stuff like special cases
-def function_1():
+def check_password():
+    display_check_password_menu()
+    password_to_check = input()
+    # So ways to check can be length, capitalised or punctuation, weak patterns like iiiiii, and common passwords list
+    check_variety()
+    check_weak_patterns(password_to_check)
+    check_common_password(password_to_check)
+
+
+    return f"""
+====================================
+          Analysis Report
+====================================
+
+Length:               {check_length(password_to_check)}
+Uppercase:            YES / NO
+Lowercase:            YES / NO            
+Numbers:              YES / NO
+Special characters:   YES / NO
+Common password:      YES / NO
+Weak patterns:        YES / NO
+
+Score: 4/6
+Strength: Strong
+"""
+
+
+def check_length(password):
+
+    if len(password) < 8:
+        return "Very Weak"
+    elif len(password) < 12:
+        return "Weak"
+    elif len(password) < 16:
+        return "Medium"
+    elif len(password) < 20:
+        return "Strong"
+    else:
+        return "Very Strong"
+
+def check_variety():
     ...
 
 
 # Checks if password exists in a list of common passwords
-def function_2():
+def check_common_password():
+    # Read from a file a list of top 10K most common passwords
     ...
 
 # Uses pattern detection to detect weak passwords
-def function_n():
+def check_weak_patterns():
     ...
 
 def generate_password():
@@ -60,8 +101,7 @@ Password: {password}
 Length: {length}
 Includes uppercase: {"Yes" if use_upper else "No"}
 Includes numbers: {"Yes" if use_numbers else "No"}
-Includes symbols: {"Yes" if use_special_characters else "No"}
-"""
+Includes symbols: {"Yes" if use_special_characters else "No"}"""
     
 
 
@@ -76,15 +116,15 @@ def get_password_preferences():
 """)
    
     length = get_length()
-    include_uppercase = get_yes_no("Include uppercase? ")
-    include_numbers = get_yes_no("Include numbers? ")
-    include_special_characters = get_yes_no("Include special characters? ")
+    include_uppercase = get_true_false("Include uppercase? ")
+    include_numbers = get_true_false("Include numbers? ")
+    include_special_characters = get_true_false("Include special characters? ")
 
     return length, include_uppercase, include_numbers, include_special_characters
 
 
 
-def get_yes_no(prompt):
+def get_true_false(prompt):
     while True:
         value = input(prompt).strip().lower()
         if value in ("y", "yes"):
@@ -119,6 +159,15 @@ def display_main_menu():
 3. Exit
 
 Choose an option: """, end="")
+    
+
+def display_check_password_menu():
+    print("""
+====================================
+        Password Strength Check
+====================================
+
+Enter a password to analyze: """, end="")
 
 if __name__ == "__main__":
     main()
