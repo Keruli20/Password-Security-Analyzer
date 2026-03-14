@@ -1,7 +1,7 @@
 import sys
-import random
 import string
 import secrets
+import re
 
 def main():
     display_main_menu()
@@ -17,16 +17,18 @@ def main():
             sys.exit("Error, pick a number")
 
 
+class evaluate_strength:
+    ...
 
 
 # Function that checks for the basic password stuff like special cases
 def check_password():
     display_check_password_menu()
     password_to_check = input()
-    # So ways to check can be length, capitalised or punctuation, weak patterns like iiiiii, and common passwords list
-    check_variety()
-    check_weak_patterns(password_to_check)
-    check_common_password(password_to_check)
+    # So ways to check can be length, variety like punctuation or numbers, weak patterns like iiiiii, and common passwords list
+    has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(password_to_check)
+    # check_weak_patterns(password_to_check)
+    # check_common_password(password_to_check)
 
 
     return f"""
@@ -35,15 +37,15 @@ def check_password():
 ====================================
 
 Length:               {check_length(password_to_check)}
-Uppercase:            YES / NO
-Lowercase:            YES / NO            
-Numbers:              YES / NO
-Special characters:   YES / NO
-Common password:      YES / NO
+Uppercase:            {has_uppercase}
+Lowercase:            {has_lowercase}          
+Numbers:              {has_numbers}
+Special characters:   {has_special_characters}
 Weak patterns:        YES / NO
+Common password:      YES / NO
 
-Score: 4/6
-Strength: Strong
+Score: evaluate_password.score
+Strength: evaluate_password.strength
 """
 
 
@@ -60,8 +62,26 @@ def check_length(password):
     else:
         return "Very Strong"
 
-def check_variety():
-    ...
+# I think we can work on this and make it better as well instead of just checking one instance of the variety?
+def check_variety(password):
+    # If password contains uppercase or lowercase or numbers or special characters, reflect it
+
+    has_uppercase = False
+    has_lowercase = False
+    has_numbers = False
+    has_special_characters = False
+
+    for char in password:
+        if char in string.ascii_uppercase:
+            has_uppercase = True
+        if char in string.ascii_lowercase:
+            has_lowercase = True
+        if char in string.digits:
+            has_numbers = True
+        if char in string.punctuation:
+            has_special_characters = True
+
+    return has_uppercase, has_lowercase, has_numbers, has_special_characters
 
 
 # Checks if password exists in a list of common passwords
