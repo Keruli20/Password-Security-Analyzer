@@ -1,5 +1,7 @@
 import sys
 import random
+import string
+import secrets
 
 def main():
     display_main_menu()
@@ -8,7 +10,7 @@ def main():
         case "1":
             print("1!")
         case "2":
-            generate_password()
+            print(generate_password())
         case "3":
             sys.exit()
         case _:
@@ -31,8 +33,36 @@ def function_n():
     ...
 
 def generate_password():
-    length, use_upper, use_lower, use_numbers, use_special_characters = get_password_preferences()
-    ...
+    length, use_upper, use_numbers, use_special_characters = get_password_preferences()
+
+    # Creates a password pool depending on what the user selected
+    pool = string.ascii_lowercase
+    if use_upper:
+        pool += string.ascii_uppercase
+    if use_numbers:
+        pool += string.digits
+    if use_special_characters:
+        pool += string.punctuation
+
+    password_list = []
+    while len(password_list) < length:
+        password_list.append(secrets.choice(pool))
+
+    password = "".join(password_list)
+
+    return f"""
+====================================
+        Generated Password
+====================================
+
+Password: {password}
+
+Length: {length}
+Includes uppercase: {"Yes" if use_upper else "No"}
+Includes numbers: {"Yes" if use_numbers else "No"}
+Includes symbols: {"Yes" if use_special_characters else "No"}
+"""
+    
 
 
 def get_password_preferences():
@@ -47,16 +77,10 @@ def get_password_preferences():
    
     length = get_length()
     include_uppercase = get_yes_no("Include uppercase? ")
-    include_lowercase = get_yes_no("Include lowercase? ")
     include_numbers = get_yes_no("Include numbers? ")
     include_special_characters = get_yes_no("Include special characters? ")
 
-
-    if not any((include_uppercase, include_lowercase, include_numbers, include_special_characters)):
-        print("You must choose at least one character type")
-        sys.exit()
-
-    return length, include_uppercase, include_lowercase, include_numbers, include_special_characters
+    return length, include_uppercase, include_numbers, include_special_characters
 
 
 
@@ -68,14 +92,16 @@ def get_yes_no(prompt):
         elif value in ("n", "no"):
             return False
 
- # TODO make sure length can't be too long
 def get_length():
     while True:
         length = input("Length: ").strip()
         try:
             length = int(length)
             if length <= 0: 
-                print("Length must be a positive number")
+                print("Must be a positive number")
+                continue
+            elif length > 100:
+                print("Password length is too long")
                 continue
             return length
         except ValueError:
