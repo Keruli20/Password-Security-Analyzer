@@ -13,8 +13,8 @@ def main():
             print(generate_password())
         case "3":
             sys.exit()
-        case "test":
-            check_common_password()
+        case "secret":
+            print("You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA")
         case _:
             sys.exit("Error, pick a number")
 
@@ -23,41 +23,45 @@ def main():
 def check_password():
     display_check_password_menu()
     password_to_check = input()
-    length = check_length(password_to_check)
+    if len(password_to_check) <= 0:
+        sys.exit("Please enter a password")
     # So ways to check can be length, variety like punctuation or numbers, weak patterns like iiiiii, and common passwords list
+    length = len(password_to_check)
+    character_label = "Character" if length == 1 else "Characters"
+    
     has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(password_to_check)
-    has_common_password, common_password = check_common_password(password_to_check)
+    has_common_password = check_common_password(password_to_check)
     # evaluate the password and return a score and a strength? Or only one is enough?
+    strength = calculate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, has_common_password)
 
     return f"""
 ====================================
           Analysis Report
 ====================================
 
-Length:               {length}
+Length:               {length} {character_label}
 Uppercase:            {"Yes" if has_uppercase else "No"}
 Lowercase:            {"Yes" if has_lowercase else "No"}          
 Numbers:              {"Yes" if has_numbers else "No"}
 Special characters:   {"Yes" if has_special_characters else "No"}
-Common password:      {"Yes (" + common_password + ")" if has_common_password else "No"}
+Common password:      {"Yes" if has_common_password else "No"}
 
-Score: show a score
-Strength: show a rating
+Strength: {strength}
 """
 
 
-def check_length(password):
+def get_length_score(length):
 
-    if len(password) < 8:
-        return "Very Weak"
-    elif len(password) < 12:
-        return "Weak"
-    elif len(password) < 16:
-        return "Medium"
-    elif len(password) < 20:
-        return "Strong"
+    if length < 8:
+        return 0
+    elif length < 12:
+        return 1
+    elif length < 16:
+        return 2
+    elif length < 20:
+        return 3
     else:
-        return "Very Strong"
+        return 4
 
 # I think we can work on this and make it better as well instead of just checking one instance of the variety?
 def check_variety(password):
@@ -86,10 +90,41 @@ def check_common_password(password):
     # Read from a file a list of top 10K most common passwords
     with open("10k-most-common.txt") as f:
         for common_password in f:
-            if password == common_password.strip():
-                return True, common_password
-        return False, None
+            if password == common_password:
+                return True
+        return False
     
+def calculate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, has_common_password):
+    
+    length_score = get_length_score(length)
+    score = length_score
+
+    if has_common_password or length < 4:
+        return "Very Weak"
+    
+    if has_uppercase:
+        score += 1
+    if has_lowercase:
+        score += 1
+    if has_numbers:
+        score += 1
+    if has_special_characters:
+        score += 1
+
+    if score <= 1:
+        strength = "Very Weak"
+    elif score <= 3:
+        strength = "Weak"
+    elif score <= 5:
+        strength = "Medium"
+    elif score <= 7:
+        strength = "Strong"
+    else:
+        strength = "Very Strong"
+
+
+    return strength
+
 
 def generate_password():
     length, use_upper, use_numbers, use_special_characters = get_password_preferences()
@@ -119,7 +154,8 @@ Password: {password}
 Length: {length}
 Includes uppercase: {"Yes" if use_upper else "No"}
 Includes numbers: {"Yes" if use_numbers else "No"}
-Includes symbols: {"Yes" if use_special_characters else "No"}"""
+Includes symbols: {"Yes" if use_special_characters else "No"}
+"""
     
 
 
