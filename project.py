@@ -13,6 +13,8 @@ def main():
             print(generate_password())
         case "3":
             sys.exit()
+        case "test":
+            check_common_password()
         case _:
             sys.exit("Error, pick a number")
 
@@ -24,8 +26,7 @@ def check_password():
     length = check_length(password_to_check)
     # So ways to check can be length, variety like punctuation or numbers, weak patterns like iiiiii, and common passwords list
     has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(password_to_check)
-    weak_found, weak_pattern = check_weak_patterns(password_to_check)
-    # check_common_password(password_to_check)
+    has_common_password, common_password = check_common_password(password_to_check)
     # evaluate the password and return a score and a strength? Or only one is enough?
 
     return f"""
@@ -38,8 +39,7 @@ Uppercase:            {"Yes" if has_uppercase else "No"}
 Lowercase:            {"Yes" if has_lowercase else "No"}          
 Numbers:              {"Yes" if has_numbers else "No"}
 Special characters:   {"Yes" if has_special_characters else "No"}
-Weak pattern:         {"Yes (" + weak_pattern + ")" if weak_found else "No"}
-Common password:      YES / NO
+Common password:      {"Yes (" + common_password + ")" if has_common_password else "No"}
 
 Score: show a score
 Strength: show a rating
@@ -82,45 +82,14 @@ def check_variety(password):
 
 
 # Checks if password exists in a list of common passwords
-def check_common_password():
+def check_common_password(password):
     # Read from a file a list of top 10K most common passwords
-    ...
-
-# Uses pattern detection to detect weak passwords
-def check_weak_patterns(password):
-    repeated =  re.search(r'(.)\1{3,}', password)
-    if repeated:
-        return True, repeated.group()
+    with open("10k-most-common.txt") as f:
+        for common_password in f:
+            if password == common_password.strip():
+                return True, common_password
+        return False, None
     
-    sequential_numbers = has_sequential_numbers(password)
-    if sequential_numbers:
-        return True, sequential_numbers
-    
-    sequential_letters = has_sequential_letters(password)
-    if sequential_letters:
-        return True, sequential_letters
-   
-
-def has_sequential_numbers(password):
-    sequences = ["0123", "1234", "2345", "3456", "4567", "5678", "6789"]
-    
-    for numbers in sequences:
-        if numbers in password:
-            return numbers
-    return None
-
-def has_sequential_letters(password):
-    password = password.lower()
-    sequences = ["abcd", "bcde", "cdef", "defg", "efgh", "fghi", "ghij",
-                 "hijk", "ijkl", "jklm", "klmn", "lmno", "mnop", "nopq",
-                 "opqr", "pqrs", "qrst", "rstu", "stuv", "tuvw", "uvwx",
-                 "vwxy", "wxyz"]
-    
-    for letters in sequences:
-        if letters in password:
-            return letters
-    return None
-
 
 def generate_password():
     length, use_upper, use_numbers, use_special_characters = get_password_preferences()
