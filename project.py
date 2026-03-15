@@ -1,14 +1,17 @@
 import sys
 import string
 import secrets
-import re
 
 def main():
     display_main_menu()
     option = input()
     match option:
         case "1":
-            print(check_password())
+            display_analyze_password_menu()
+            # Gets the password that the user types in
+            password_to_analyze = input()
+            length, strength, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password = analyze_password(password_to_analyze)
+            display_analysis_report()
         case "2":
             print(generate_password())
         case "3":
@@ -16,23 +19,29 @@ def main():
         case "secret":
             print("You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA")
         case _:
-            sys.exit("Error, pick a number")
+            sys.exit("Please choose a valid option")
 
 
-# Function that checks for the basic password stuff like special cases
-def check_password():
-    display_check_password_menu()
-    password_to_check = input()
-    if len(password_to_check) <= 0:
+# Function to analyze the password given
+def analyze_password(password_to_analyze):
+
+    # Ensure that password is not empty
+    if len(password_to_analyze) <= 0:
         sys.exit("Please enter a password")
-    # So ways to check can be length, variety like punctuation or numbers, weak patterns like iiiiii, and common passwords list
-    length = len(password_to_check)
+
+    length = len(password_to_analyze)
     character_label = "Character" if length == 1 else "Characters"
     
-    has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(password_to_check)
-    has_common_password = check_common_password(password_to_check)
-    # evaluate the password and return a score and a strength? Or only one is enough?
-    strength = calculate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, has_common_password)
+    # Checks for password variety (uppercase, lowercase, numbers, special characters)
+    has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(password_to_analyze)
+
+    # Checks if password is a common password
+    is_common_password = check_if_common_password(password_to_analyze)
+
+    # Evaluate the strength of the password
+    strength = evaluate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password)
+
+    return length, strength, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password
 
     return f"""
 ====================================
@@ -44,64 +53,47 @@ Uppercase:            {"Yes" if has_uppercase else "No"}
 Lowercase:            {"Yes" if has_lowercase else "No"}          
 Numbers:              {"Yes" if has_numbers else "No"}
 Special characters:   {"Yes" if has_special_characters else "No"}
-Common password:      {"Yes" if has_common_password else "No"}
+Common password:      {"Yes" if is_common_password else "No"}
 
 Strength: {strength}
 """
 
 
-def get_length_score(length):
 
-    if length < 8:
-        return 0
-    elif length < 12:
-        return 1
-    elif length < 16:
-        return 2
-    elif length < 20:
-        return 3
-    else:
-        return 4
-
-# I think we can work on this and make it better as well instead of just checking one instance of the variety?
+# Function that checks for password variety (uppercase, lowercase, numbers, special characters)
 def check_variety(password):
-    # If password contains uppercase or lowercase or numbers or special characters, reflect it
 
-    has_uppercase = False
-    has_lowercase = False
-    has_numbers = False
-    has_special_characters = False
-
-    for char in password:
-        if char in string.ascii_uppercase:
-            has_uppercase = True
-        if char in string.ascii_lowercase:
-            has_lowercase = True
-        if char in string.digits:
-            has_numbers = True
-        if char in string.punctuation:
-            has_special_characters = True
+    # Returns True if any instance of a uppercase/lowercase/number/special character was found in the password
+    has_uppercase = any(char in string.ascii_uppercase for char in password)
+    has_lowercase = any(char in string.ascii_lowercase for char in password)
+    has_numbers = any(char in string.digits for char in password)  
+    has_special_characters = any(char in string.punctuation for char in password)
 
     return has_uppercase, has_lowercase, has_numbers, has_special_characters
 
 
-# Checks if password exists in a list of common passwords
-def check_common_password(password):
-    # Read from a file a list of top 10K most common passwords
+# Function that if the password is in a list of common password
+def check_if_common_password(password):
+
+    # Read from a txt file with the top 10K most common passwords
     with open("10k-most-common.txt") as f:
         for common_password in f:
-            if password == common_password:
+            if password == common_password.strip():
                 return True
         return False
     
-def calculate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, has_common_password):
+# Function that evaluates the strength of the password
+def evaluate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password):
     
+    # Gets the length score of the password
     length_score = get_length_score(length)
     score = length_score
 
-    if has_common_password or length < 4:
+    # If password is a common password or is shorter than 4 characters, consider it very weak
+    if is_common_password or length < 4:
         return "Very Weak"
     
+    # Add a point to the length score if password contains any variety
     if has_uppercase:
         score += 1
     if has_lowercase:
@@ -111,6 +103,7 @@ def calculate_strength(length, has_uppercase, has_lowercase, has_numbers, has_sp
     if has_special_characters:
         score += 1
 
+    # Assigns the strength based on the number of points total
     if score <= 1:
         strength = "Very Weak"
     elif score <= 3:
@@ -122,26 +115,48 @@ def calculate_strength(length, has_uppercase, has_lowercase, has_numbers, has_sp
     else:
         strength = "Very Strong"
 
-
     return strength
 
+# Functions that assigns the length score of the password
+def get_length_score(length):
 
+    # Very weak score
+    if length < 8:
+        return 0
+    # Weak score
+    elif length < 12:
+        return 1
+    # Medium score
+    elif length < 16:
+        return 2
+    # Strong score
+    elif length < 20:
+        return 3
+    # Very strong score
+    else:
+        return 4
+
+# Function that generates a password
 def generate_password():
-    length, use_upper, use_numbers, use_special_characters = get_password_preferences()
 
-    # Creates a password pool depending on what the user selected
+    # Gets the preferences of the user for generating the password
+    length, has_uppercase, has_numbers, has_special_characters = get_password_preferences()
+
+    character_label = "Character" if length == 1 else "Characters"
+
+    # Creates a password pool based on the user's preferences
     pool = string.ascii_lowercase
-    if use_upper:
+    if has_uppercase:
         pool += string.ascii_uppercase
-    if use_numbers:
+    if has_numbers:
         pool += string.digits
-    if use_special_characters:
+    if has_special_characters:
         pool += string.punctuation
 
+    # Creates the password randomly and securely
     password_list = []
     while len(password_list) < length:
         password_list.append(secrets.choice(pool))
-
     password = "".join(password_list)
 
     return f"""
@@ -151,18 +166,16 @@ def generate_password():
 
 Password: {password}
 
-Length: {length}
-Includes uppercase: {"Yes" if use_upper else "No"}
-Includes numbers: {"Yes" if use_numbers else "No"}
-Includes symbols: {"Yes" if use_special_characters else "No"}
+Length: {length} {character_label}
+Includes uppercase: {"Yes" if has_uppercase else "No"}
+Includes numbers: {"Yes" if has_numbers else "No"}
+Includes symbols: {"Yes" if has_special_characters else "No"}
+
+Strength: {strength}
 """
     
-
-
 def get_password_preferences():
-    # Prompt user for how many characters they want their password to have
-    # Ask them if they want uppercase, numbers or special characters
-    # Run the check password strength function once generated
+
     print("""
 ====================================
         Generate a Password
@@ -215,7 +228,7 @@ def display_main_menu():
 Choose an option: """, end="")
     
 
-def display_check_password_menu():
+def display_analyze_password_menu():
     print("""
 ====================================
         Password Strength Check
