@@ -9,7 +9,6 @@ def main():
         display_main_menu()
         option = input()
         match option:
-
             case "1":
                 display_check_password_strength_menu()
                 given_password = input()
