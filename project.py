@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 
 def main():
-    while True:
+    try:
         display_main_menu()
         option = input()
         match option:
@@ -15,20 +15,17 @@ def main():
                 given_password = input()
                 password_report = analyze_password(given_password)
                 display_analysis_report(password_report)
-                break
             case "2":
                 # Unpack preferences into arguments for the generate password function
                 generated_password = generate_password(*get_password_preferences())
                 display_generated_password(generated_password)
-                break
             case "3":
                 sys.exit()
-            case "secret":
-                sys.exit(
-                    "You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA"
-                )
             case _:
-                print("Please choose a valid option")
+                raise ValueError("Please choose a valid option")
+
+    except ValueError as error_message:
+        sys.exit(error_message)
 
 
 @dataclass
@@ -47,7 +44,7 @@ def analyze_password(password_to_analyze):
 
     # Ensure that password is not empty
     if not password_to_analyze:
-        sys.exit("Please enter a password")
+        raise ValueError("Please enter a password")
 
     length = len(password_to_analyze)
 
@@ -105,6 +102,7 @@ def check_if_common_password(password):
 
 
 # Function that evaluates the strength of the password
+# Currently function uses point system to check and therefore might not take into consideration very long passwords as being more secure
 def evaluate_strength(
     length,
     has_uppercase,
@@ -205,20 +203,9 @@ def get_password_preferences():
     return length, include_uppercase, include_numbers, include_special_characters
 
 
-# Function to prompt the user for yes/no
-def get_true_false(prompt):
-    while True:
-        value = input(prompt).strip().lower()
-        if value in ("y", "yes"):
-            return True
-        elif value in ("n", "no"):
-            return False
-        else:
-            print("Please enter yes or no")
-
-
 # Function to get and validate the length of a password
 def get_password_length():
+
     while True:
         length = input("Length: ").strip()
         try:
@@ -234,11 +221,23 @@ def get_password_length():
             print("Please enter a whole number.")
 
 
+# Function to prompt the user for yes/no
+def get_true_false(prompt):
+    while True:
+        value = input(prompt).strip().lower()
+        if value in ("y", "yes"):
+            return True
+        elif value in ("n", "no"):
+            return False
+        else:
+            print("Please enter yes or no")
+
+
 def display_main_menu():
     print(
         """    
 ====================================
-     Password Security Analyzer
+    Password Security Analyzer
 ====================================
 
 1. Analyze a password
