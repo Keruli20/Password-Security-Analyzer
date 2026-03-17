@@ -1,28 +1,43 @@
 import sys
 import string
 import secrets
+from dataclasses import dataclass
+
 
 def main():
     display_main_menu()
     option = input()
     match option:
         case "1":
-            display_analyze_password_menu()
-            # Gets the password that the user types in
-            password_to_analyze = input()
-            length, strength, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password = analyze_password(password_to_analyze)
-            display_analysis_report()
+            display_check_password_strength_menu()
+            given_password = input()
+            password_report = analyze_password(given_password)
+            display_analysis_report(password_report)
         case "2":
-            print(generate_password())
+            generated_password = generate_password()
+            display_generated_password(generated_password)
         case "3":
             sys.exit()
         case "secret":
-            print("You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA")
+            print(
+                "You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA"
+            )
         case _:
             sys.exit("Please choose a valid option")
 
 
-# Function to analyze the password given
+@dataclass
+class PasswordReport:
+    length: int
+    strength: str
+    has_uppercase: bool
+    has_lowercase: bool
+    has_numbers: bool
+    has_special_characters: bool
+    is_common_password: bool
+
+
+# Function that analyzes the password given and returns a class
 def analyze_password(password_to_analyze):
 
     # Ensure that password is not empty
@@ -30,34 +45,34 @@ def analyze_password(password_to_analyze):
         sys.exit("Please enter a password")
 
     length = len(password_to_analyze)
-    character_label = "Character" if length == 1 else "Characters"
-    
+
     # Checks for password variety (uppercase, lowercase, numbers, special characters)
-    has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(password_to_analyze)
+    has_uppercase, has_lowercase, has_numbers, has_special_characters = check_variety(
+        password_to_analyze
+    )
 
     # Checks if password is a common password
     is_common_password = check_if_common_password(password_to_analyze)
 
     # Evaluate the strength of the password
-    strength = evaluate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password)
+    strength = evaluate_strength(
+        length,
+        has_uppercase,
+        has_lowercase,
+        has_numbers,
+        has_special_characters,
+        is_common_password,
+    )
 
-    return length, strength, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password
-
-    return f"""
-====================================
-          Analysis Report
-====================================
-
-Length:               {length} {character_label}
-Uppercase:            {"Yes" if has_uppercase else "No"}
-Lowercase:            {"Yes" if has_lowercase else "No"}          
-Numbers:              {"Yes" if has_numbers else "No"}
-Special characters:   {"Yes" if has_special_characters else "No"}
-Common password:      {"Yes" if is_common_password else "No"}
-
-Strength: {strength}
-"""
-
+    return PasswordReport(
+        length=length,
+        strength=strength,
+        has_uppercase=has_uppercase,
+        has_lowercase=has_lowercase,
+        has_numbers=has_numbers,
+        has_special_characters=has_special_characters,
+        is_common_password=is_common_password,
+    )
 
 
 # Function that checks for password variety (uppercase, lowercase, numbers, special characters)
@@ -66,7 +81,7 @@ def check_variety(password):
     # Returns True if any instance of a uppercase/lowercase/number/special character was found in the password
     has_uppercase = any(char in string.ascii_uppercase for char in password)
     has_lowercase = any(char in string.ascii_lowercase for char in password)
-    has_numbers = any(char in string.digits for char in password)  
+    has_numbers = any(char in string.digits for char in password)
     has_special_characters = any(char in string.punctuation for char in password)
 
     return has_uppercase, has_lowercase, has_numbers, has_special_characters
@@ -81,18 +96,25 @@ def check_if_common_password(password):
             if password == common_password.strip():
                 return True
         return False
-    
+
+
 # Function that evaluates the strength of the password
-def evaluate_strength(length, has_uppercase, has_lowercase, has_numbers, has_special_characters, is_common_password):
-    
-    # Gets the length score of the password
+def evaluate_strength(
+    length,
+    has_uppercase,
+    has_lowercase,
+    has_numbers,
+    has_special_characters,
+    is_common_password,
+):
+
     length_score = get_length_score(length)
     score = length_score
 
     # If password is a common password or is shorter than 4 characters, consider it very weak
     if is_common_password or length < 4:
         return "Very Weak"
-    
+
     # Add a point to the length score if password contains any variety
     if has_uppercase:
         score += 1
@@ -117,6 +139,7 @@ def evaluate_strength(length, has_uppercase, has_lowercase, has_numbers, has_spe
 
     return strength
 
+
 # Functions that assigns the length score of the password
 def get_length_score(length):
 
@@ -136,13 +159,14 @@ def get_length_score(length):
     else:
         return 4
 
+
 # Function that generates a password
 def generate_password():
 
     # Gets the preferences of the user for generating the password
-    length, has_uppercase, has_numbers, has_special_characters = get_password_preferences()
-
-    character_label = "Character" if length == 1 else "Characters"
+    length, has_uppercase, has_numbers, has_special_characters = (
+        get_password_preferences()
+    )
 
     # Creates a password pool based on the user's preferences
     pool = string.ascii_lowercase
@@ -153,36 +177,28 @@ def generate_password():
     if has_special_characters:
         pool += string.punctuation
 
-    # Creates the password randomly and securely
-    password_list = []
-    while len(password_list) < length:
-        password_list.append(secrets.choice(pool))
-    password = "".join(password_list)
+    # Creates the password securely and randomly
+    generated_password_list = []
+    while len(generated_password_list) < length:
+        generated_password_list.append(secrets.choice(pool))
+    generated_password = "".join(generated_password_list)
 
-    return f"""
-====================================
-        Generated Password
-====================================
+    # Returns the generated password
+    return generated_password
 
-Password: {password}
 
-Length: {length} {character_label}
-Includes uppercase: {"Yes" if has_uppercase else "No"}
-Includes numbers: {"Yes" if has_numbers else "No"}
-Includes symbols: {"Yes" if has_special_characters else "No"}
-
-Strength: {strength}
-"""
-    
+# Function that gets the users password preferences such as length, uppercase, numbers and special characters
 def get_password_preferences():
 
-    print("""
+    print(
+        """
 ====================================
         Generate a Password
 ====================================
-""")
-   
-    length = get_length()
+"""
+    )
+
+    length = get_password_length()
     include_uppercase = get_true_false("Include uppercase? ")
     include_numbers = get_true_false("Include numbers? ")
     include_special_characters = get_true_false("Include special characters? ")
@@ -190,7 +206,7 @@ def get_password_preferences():
     return length, include_uppercase, include_numbers, include_special_characters
 
 
-
+# Function to prompt the user for yes/no
 def get_true_false(prompt):
     while True:
         value = input(prompt).strip().lower()
@@ -199,12 +215,14 @@ def get_true_false(prompt):
         elif value in ("n", "no"):
             return False
 
-def get_length():
+
+# Function to get and validate the length of a password
+def get_password_length():
     while True:
         length = input("Length: ").strip()
         try:
             length = int(length)
-            if length <= 0: 
+            if length <= 0:
                 print("Must be a positive number")
                 continue
             elif length > 100:
@@ -216,7 +234,8 @@ def get_length():
 
 
 def display_main_menu():
-    print("""    
+    print(
+        """    
 ====================================
      Password Security Analyzer
 ====================================
@@ -225,16 +244,68 @@ def display_main_menu():
 2. Generate a password
 3. Exit
 
-Choose an option: """, end="")
-    
+Choose an option: """,
+        end="",
+    )
 
-def display_analyze_password_menu():
-    print("""
+
+def display_check_password_strength_menu():
+    print(
+        """
 ====================================
-        Password Strength Check
+        Check Password Strength 
 ====================================
 
-Enter a password to analyze: """, end="")
+Enter a password to analyze: """,
+        end="",
+    )
+
+
+def display_analysis_report(password_report):
+
+    character_label = "Character" if password_report.length == 1 else "Characters"
+
+    print(
+        f"""
+====================================
+            Analysis Report
+====================================
+
+Length:               {password_report.length} {character_label}
+Uppercase:            {"Yes" if password_report.has_uppercase else "No"}
+Lowercase:            {"Yes" if password_report.has_lowercase else "No"}          
+Numbers:              {"Yes" if password_report.has_numbers else "No"}
+Special characters:   {"Yes" if password_report.has_special_characters else "No"}
+Common password:      {"Yes" if password_report.is_common_password else "No"}
+
+Strength: {password_report.strength}"""
+    )
+
+
+def display_generated_password(generated_password):
+
+    # Analyze the password strength of the generated password
+    password_report = analyze_password(generated_password)
+
+    character_label = "Character" if password_report.length == 1 else "Characters"
+
+    print(
+        f"""
+====================================
+        Generated Password
+====================================
+
+Password: {generated_password}
+
+Length: {password_report.length} {character_label}
+Includes uppercase: {"Yes" if password_report.has_uppercase else "No"}
+Includes numbers: {"Yes" if password_report.has_numbers else "No"}
+Includes symbols: {"Yes" if password_report.has_special_characters else "No"}
+
+Strength: {password_report.strength}
+"""
+    )
+
 
 if __name__ == "__main__":
     main()
