@@ -5,25 +5,30 @@ from dataclasses import dataclass
 
 
 def main():
-    display_main_menu()
-    option = input()
-    match option:
-        case "1":
-            display_check_password_strength_menu()
-            given_password = input()
-            password_report = analyze_password(given_password)
-            display_analysis_report(password_report)
-        case "2":
-            generated_password = generate_password()
-            display_generated_password(generated_password)
-        case "3":
-            sys.exit()
-        case "secret":
-            print(
-                "You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA"
-            )
-        case _:
-            sys.exit("Please choose a valid option")
+    while True:
+        display_main_menu()
+        option = input()
+        match option:
+
+            case "1":
+                display_check_password_strength_menu()
+                given_password = input()
+                password_report = analyze_password(given_password)
+                display_analysis_report(password_report)
+                break
+            case "2":
+                # Unpack preferences into arguments for the generate password function
+                generated_password = generate_password(*get_password_preferences())
+                display_generated_password(generated_password)
+                break
+            case "3":
+                sys.exit()
+            case "secret":
+                sys.exit(
+                    "You have discovered the secret! Here it is https://youtu.be/yPYZpwSpKmA"
+                )
+            case _:
+                print("Please choose a valid option")
 
 
 @dataclass
@@ -37,11 +42,11 @@ class PasswordReport:
     is_common_password: bool
 
 
-# Function that analyzes the password given and returns a class
+# Function that analyzes the password and return an object
 def analyze_password(password_to_analyze):
 
     # Ensure that password is not empty
-    if len(password_to_analyze) <= 0:
+    if not password_to_analyze:
         sys.exit("Please enter a password")
 
     length = len(password_to_analyze)
@@ -90,9 +95,10 @@ def check_variety(password):
 # Function that if the password is in a list of common password
 def check_if_common_password(password):
 
-    # Read from a txt file with the top 10K most common passwords
-    with open("10k-most-common.txt") as f:
+    # Read from a .txt file with the top 10K most common passwords
+    with open("10k_most_common_passwords.txt") as f:
         for common_password in f:
+            # Returns True if the password was found in the common password .txt file
             if password == common_password.strip():
                 return True
         return False
@@ -107,15 +113,14 @@ def evaluate_strength(
     has_special_characters,
     is_common_password,
 ):
-
-    length_score = get_length_score(length)
-    score = length_score
+    # Assigns the score as the password length score
+    score = get_length_score(length)
 
     # If password is a common password or is shorter than 4 characters, consider it very weak
     if is_common_password or length < 4:
         return "Very Weak"
 
-    # Add a point to the length score if password contains any variety
+    # Add a point to the score if password contains any variety
     if has_uppercase:
         score += 1
     if has_lowercase:
@@ -128,11 +133,11 @@ def evaluate_strength(
     # Assigns the strength based on the number of points total
     if score <= 1:
         strength = "Very Weak"
-    elif score <= 3:
+    elif score <= 2:
         strength = "Weak"
-    elif score <= 5:
+    elif score <= 4:
         strength = "Medium"
-    elif score <= 7:
+    elif score <= 6:
         strength = "Strong"
     else:
         strength = "Very Strong"
@@ -140,7 +145,7 @@ def evaluate_strength(
     return strength
 
 
-# Functions that assigns the length score of the password
+# Function that assigns the length score of the password
 def get_length_score(length):
 
     # Very weak score
@@ -160,13 +165,7 @@ def get_length_score(length):
         return 4
 
 
-# Function that generates a password
-def generate_password():
-
-    # Gets the preferences of the user for generating the password
-    length, has_uppercase, has_numbers, has_special_characters = (
-        get_password_preferences()
-    )
+def generate_password(length, has_uppercase, has_numbers, has_special_characters):
 
     # Creates a password pool based on the user's preferences
     pool = string.ascii_lowercase
@@ -214,6 +213,8 @@ def get_true_false(prompt):
             return True
         elif value in ("n", "no"):
             return False
+        else:
+            print("Please enter yes or no")
 
 
 # Function to get and validate the length of a password
@@ -284,26 +285,13 @@ Strength: {password_report.strength}"""
 
 def display_generated_password(generated_password):
 
-    # Analyze the password strength of the generated password
-    password_report = analyze_password(generated_password)
-
-    character_label = "Character" if password_report.length == 1 else "Characters"
-
     print(
         f"""
 ====================================
         Generated Password
 ====================================
 
-Password: {generated_password}
-
-Length: {password_report.length} {character_label}
-Includes uppercase: {"Yes" if password_report.has_uppercase else "No"}
-Includes numbers: {"Yes" if password_report.has_numbers else "No"}
-Includes symbols: {"Yes" if password_report.has_special_characters else "No"}
-
-Strength: {password_report.strength}
-"""
+Password: {generated_password}"""
     )
 
 

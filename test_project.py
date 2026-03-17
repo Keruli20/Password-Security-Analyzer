@@ -1,10 +1,22 @@
-def test_function_1():
+def analyze_password():
+    ...
+
+def check_variety():
     ...
 
 
-def test_function_2():
+def check_if_common_password():
     ...
 
 
-def test_function_n():
+def evaluate_strength():
+    ...
+
+def get_length_score():
+    ...
+
+def generate_password():
+    ...
+
+def get_password_length():
     ...
