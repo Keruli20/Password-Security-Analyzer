@@ -1,6 +1,6 @@
 # Password Security Analyzer
 
-#### Video Demo: <!--Insert Video Demo Link here-->
+#### Video Demo: https://youtu.be/ykHycXYauKo
 
 ## **What is my project?**
 
@@ -22,7 +22,7 @@ By building a password analyzer, my goal is to help users understand the strengt
 
 ## **Example Output**
 
-### **Option 1**
+### **Analyze a password**
 ```
 ====================================
     Password Security Analyzer
@@ -55,7 +55,7 @@ Common password:      No
 
 Strength: Very Strong
 ```
-### **Option 2**
+### **Generate a password**
 ```
 ====================================
     Password Security Analyzer
